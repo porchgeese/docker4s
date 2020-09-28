@@ -1,3 +1,3 @@
 package pt.porchgeese.docker4s.domain
 
-case class ContainerPort(port: Int)
+final case class ContainerPort(port: Int) extends AnyVal

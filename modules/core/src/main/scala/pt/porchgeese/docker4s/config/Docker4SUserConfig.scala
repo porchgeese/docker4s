@@ -1,9 +1,7 @@
-package pt.porchgeese.docker4s
+package pt.porchgeese.docker4s.config
 
 import java.net.URI
-
 import javax.net.ssl.SSLContext
-
 import scala.concurrent.duration.FiniteDuration
 
 case class Docker4SUserConfig(

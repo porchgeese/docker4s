@@ -3,10 +3,10 @@ package pt.porchgeese.docker4s.domain
 object ContainerHealth {
   sealed trait ContainerHealth
 
-  case object STARTING  extends ContainerHealth
-  case object HEALTHY   extends ContainerHealth
-  case object UNHEALTHY extends ContainerHealth
-  case object NONE      extends ContainerHealth
+  final case object STARTING  extends ContainerHealth
+  final case object HEALTHY   extends ContainerHealth
+  final case object UNHEALTHY extends ContainerHealth
+  final case object NONE      extends ContainerHealth
 
   def fromInternal(s: String): ContainerHealth =
     s.toUpperCase match {

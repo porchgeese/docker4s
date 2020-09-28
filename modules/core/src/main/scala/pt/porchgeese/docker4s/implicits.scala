@@ -4,7 +4,7 @@ import cats.{Applicative, Monad}
 import cats.arrow.FunctionK
 import cats.effect.IO.Pure
 import cats.effect.{ConcurrentEffect, Resource}
-import pt.porchgeese.docker4s.adt.DockerAction
+import pt.porchgeese.docker4s.algebra.DockerAction
 import pt.porchgeese.docker4s.domain.{ContainerDef, ContainerDetails, ContainerId, ImageDetails, ImageId, ImageName}
 
 object implicits {

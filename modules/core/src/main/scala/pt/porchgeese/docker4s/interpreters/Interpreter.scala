@@ -4,21 +4,19 @@ import java.io.File
 
 import cats.arrow.FunctionK
 import cats.effect.concurrent.Deferred
-import cats.effect.{Async, ConcurrentEffect, Effect, LiftIO, Resource, Timer}
-import cats.{Applicative, ~>}
+import cats.effect.{Async, ConcurrentEffect, Effect, Resource, Timer}
+import cats.~>
 import com.github.dockerjava.api.{DockerClient => InternalDockerClient}
 import com.github.dockerjava.api.command.{BuildImageResultCallback, CreateContainerCmd, PullImageResultCallback}
 import com.github.dockerjava.api.model.{ExposedPort, HostConfig, PushResponseItem}
-import pt.porchgeese.docker4s.adt._
+import pt.porchgeese.docker4s.algebra._
 import pt.porchgeese.docker4s.domain._
 import pt.porchgeese.docker4s.util.Util
 import cats.implicits._
 import cats.effect.implicits._
-import cats.free.FreeT
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
-import pt.porchgeese.docker4s.Docker4SConfig
-import pt.porchgeese.docker4s.adt.DockerAction.{getContainerDetails, killContainer, removeContainer}
+import pt.porchgeese.docker4s.config.Docker4SConfig
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
