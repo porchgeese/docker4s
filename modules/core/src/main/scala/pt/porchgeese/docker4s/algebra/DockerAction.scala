@@ -4,11 +4,12 @@ import cats.Applicative
 import cats.free.FreeT
 import com.github.dockerjava.api.command.PushImageCmd
 import pt.porchgeese.docker4s.domain.{ContainerDef, ContainerDetails, ContainerId, ContainerStatus, ImageDetails, ImageId, ImageName}
+import pt.porchgeese.docker4s.label.Label
 
 sealed trait DockerAction[A]
 
-case class BuildImage(dockerFile: String, imageName: ImageName) extends DockerAction[Unit]
-case class BuildContainer(c: ContainerDef)                      extends DockerAction[ContainerId]
+case class BuildImage(dockerFile: String, imageName: ImageName, labels: List[Label]) extends DockerAction[Unit]
+case class BuildContainer(c: ContainerDef)                                           extends DockerAction[ContainerId]
 
 case class RemoveContainer(c: ContainerId) extends DockerAction[Unit]
 

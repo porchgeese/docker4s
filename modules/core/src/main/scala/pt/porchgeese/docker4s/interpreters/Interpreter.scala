@@ -3,6 +3,7 @@ package pt.porchgeese.docker4s.interpreters
 import java.io.File
 
 import cats.arrow.FunctionK
+import cats.data.NonEmptyList
 import cats.effect.concurrent.Deferred
 import cats.effect.{Async, ConcurrentEffect, Effect, Resource, Timer}
 import cats.~>
@@ -17,6 +18,7 @@ import cats.effect.implicits._
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
 import pt.porchgeese.docker4s.config.Docker4SConfig
+import pt.porchgeese.docker4s.label.Label
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -34,7 +36,8 @@ object Interpreter {
               _   <- config.pullImageTimeout.fold(ref.get)(t => ref.get.timeout(t))
             } yield ()
 
-          case BuildImage(dockerFile, name) =>
+          case BuildImage(dockerFile, name, imageLabels) =>
+            val labels = (config.defaultLabels ++ imageLabels).map(_.asTuple).toMap.asJava
             for {
               ref <- Deferred[F, Either[Throwable, Unit]]
               df <- Async[F].delay(
@@ -45,6 +48,7 @@ object Interpreter {
                   .buildImageCmd(df)
                   .withDockerfilePath(dockerFile)
                   .withTags(Set(name.show).asJava)
+                  .withLabels(labels)
                   .exec(buildImageCallback(ref))
               )
               _ <- config.buildImageTimeout.fold(ref.get)(t => ref.get.timeout(t)).rethrow
@@ -62,7 +66,7 @@ object Interpreter {
             } yield ()
           case BuildContainer(containerDef) =>
             for {
-              cmd       <- Async[F].pure(buildContainerCommand(cli, containerDef))
+              cmd       <- Async[F].pure(buildContainerCommand(cli, config.defaultLabels, containerDef))
               container <- Async[F].delay(cmd.exec())
             } yield ContainerId(container.getId)
 
@@ -124,35 +128,47 @@ object Interpreter {
             Resource
               .make {
                 for {
-                  cId  <- effInterpreter(a)
-                  hook <- registerShutdownHook(removeContainerIfExists[F](cId).foldMap(effInterpreter))
+                  cId <- effInterpreter(a)
+                  removeAction = removeContainerIfExists[F](cId).foldMap(effInterpreter)
+                  hook <- registerShutdownHook(removeAction)
                 } yield (cId, hook)
               }({
                 case (cId, hook) =>
-                  removeContainerIfExists[F](cId).foldMap(effInterpreter).flatMap(_ => removeShutdownHook(hook))
+                  for {
+                    _ <- removeContainerIfExists[F](cId).foldMap(effInterpreter)
+                    _ <- removeShutdownHook(hook)
+                  } yield ()
               })
               .map(_._1)
           case a: StartContainer =>
             Resource
               .make(
                 (for {
-                  _    <- effInterpreter(a)
-                  hook <- registerShutdownHook(killContainerIfRunning[F](a.container).foldMap(effInterpreter))
+                  _ <- effInterpreter(a)
+                  killAction = killContainerIfRunning[F](a.container).foldMap(effInterpreter)
+                  hook <- registerShutdownHook(killAction)
                 } yield hook)
-              )(hook => killContainerIfRunning[F](a.container).foldMap(effInterpreter).flatMap(_ => removeShutdownHook(hook)))
+              )(hook =>
+                for {
+                  _ <- killContainerIfRunning[F](a.container).foldMap(effInterpreter)
+                  _ <- removeShutdownHook(hook)
+                } yield ()
+              )
               .void
           case other => Resource.liftF[F, A](effInterpreter(other))
         }
     }
   }
 
-  private def buildContainerCommand(cli: InternalDockerClient, containerDef: ContainerDef): CreateContainerCmd = {
+  private def buildContainerCommand(cli: InternalDockerClient, defaultLabels: List[Label], containerDef: ContainerDef): CreateContainerCmd = {
+    val labels: Map[String, String] = (containerDef.labels ++ defaultLabels).map(_.asTuple).toMap
     val command = cli
       .createContainerCmd(containerDef.sourceImage.show)
       .withEnv(containerDef.envVars.map(_.show).asJava)
       .withExposedPorts(
         containerDef.exposedPort.map(p => new ExposedPort(p.port, InternetProtocol.asInternalProtocol(p.protocol))): _*
       )
+      .withLabels(labels.asJava)
       .withHostConfig(new HostConfig().withPublishAllPorts(true))
     Util.builderApply[String, CreateContainerCmd](containerDef.name)(_.withName)(command)
   }

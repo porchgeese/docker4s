@@ -5,7 +5,7 @@ import java.net.URI
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.transport.SSLConfig
 import pt.porchgeese.docker4s.config
-
+import pt.porchgeese.docker4s.label.Label
 import scala.concurrent.duration.FiniteDuration
 
 private[docker4s] case class Docker4SConfig(
@@ -18,7 +18,8 @@ private[docker4s] case class Docker4SConfig(
     registryUsername: Option[String],
     registryEmail: Option[String],
     registryUrl: Option[String],
-    apiVersion: String
+    apiVersion: String,
+    defaultLabels: List[Label]
 )
 
 private[docker4s] object Docker4SConfig {
@@ -39,7 +40,8 @@ private[docker4s] object Docker4SConfig {
       registryUsername = userConfig.registryUsername,
       registryEmail = userConfig.registryEmail,
       registryUrl = userConfig.registryUrl,
-      apiVersion = apiVersion
+      apiVersion = apiVersion,
+      defaultLabels = userConfig.labels
     )
   }
 
