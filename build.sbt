@@ -16,7 +16,8 @@ lazy val core = (project in file("modules/core"))
 lazy val examples = (project in file("modules/examples"))
   .settings(
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
-    buildInfoPackage := "pt.porchgeese.containers4s"
+    buildInfoPackage := "pt.porchgeese.containers4s",
+    libraryDependencies ++= doobie
   )
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(core)

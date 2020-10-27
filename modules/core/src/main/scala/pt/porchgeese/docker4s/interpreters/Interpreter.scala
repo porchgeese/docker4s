@@ -124,11 +124,11 @@ object Interpreter {
       import DockerAction._
       override def apply[A](fa: DockerAction[A]): Resource[F, A] =
         fa match {
-          case a: BuildContainer =>
+          case build: BuildContainer =>
             Resource
               .make {
                 for {
-                  cId <- effInterpreter(a)
+                  cId <- effInterpreter(build)
                   removeAction = removeContainerIfExists[F](cId).foldMap(effInterpreter)
                   hook <- registerShutdownHook(removeAction)
                 } yield (cId, hook)
@@ -140,17 +140,17 @@ object Interpreter {
                   } yield ()
               })
               .map(_._1)
-          case a: StartContainer =>
+          case start: StartContainer =>
             Resource
               .make(
                 (for {
-                  _ <- effInterpreter(a)
-                  killAction = killContainerIfRunning[F](a.container).foldMap(effInterpreter)
+                  _ <- effInterpreter(start)
+                  killAction = killContainerIfRunning[F](start.container).foldMap(effInterpreter)
                   hook <- registerShutdownHook(killAction)
                 } yield hook)
               )(hook =>
                 for {
-                  _ <- killContainerIfRunning[F](a.container).foldMap(effInterpreter)
+                  _ <- killContainerIfRunning[F](start.container).foldMap(effInterpreter)
                   _ <- removeShutdownHook(hook)
                 } yield ()
               )

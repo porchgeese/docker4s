@@ -11,7 +11,7 @@ import scala.util.Try
 final case class ContainerDetails(
     image: ImageId,
     containerId: ContainerId,
-    exposedPort: Map[ExposedPort, List[ContainerPort]],
+    exposedPorts: Map[ExposedPort, List[ContainerPort]],
     runningStatus: ContainerStatus,
     health: Option[ContainerHealth],
     name: ContainerName

@@ -6,6 +6,7 @@ object Dependencies {
   val Log4sVersion      = "1.8.2"
   val CatsVersion = "2.0.0"
   val CatsEffectVersion = "2.2.0"
+  lazy val doobieVersion = "0.9.0"
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.0"
   lazy val dockerTest = List(
@@ -23,5 +24,11 @@ object Dependencies {
     "org.log4s"         %% "log4s"           % Log4sVersion,
     "ch.qos.logback"     % "logback-classic" % LogbackVersion,
     "io.chrisdavenport" %% "log4cats-core"   % Log4CatsVersion
+  )
+
+  val doobie =  List(
+    "org.tpolecat" %% "doobie-core"     % doobieVersion,
+    "org.tpolecat" %% "doobie-postgres" % doobieVersion,
+    "org.tpolecat" %% "doobie-specs2"   % doobieVersion
   )
 }

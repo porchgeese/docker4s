@@ -2,10 +2,10 @@ package pt.porchgeese.docker4s
 
 import cats.{Applicative, Monad}
 import cats.arrow.FunctionK
-import cats.effect.IO.Pure
 import cats.effect.{ConcurrentEffect, Resource}
 import pt.porchgeese.docker4s.algebra.DockerAction
 import pt.porchgeese.docker4s.domain.{ContainerDef, ContainerDetails, ContainerId, ImageDetails, ImageId, ImageName}
+import pt.porchgeese.docker4s.label.Label
 
 object implicits {
 
@@ -13,7 +13,7 @@ object implicits {
     def pullImage(image: ImageName): Eff[Unit]
     def removeContainer(id: ContainerId): Eff[Unit]
     def pushImage(image: ImageName): Eff[Unit]
-    def buildImage(dockerFile: String, imageName: ImageName): Eff[Unit]
+    def buildImage(dockerFile: String, imageName: ImageName, labels: List[Label]): Eff[Unit]
     def buildContainer(c: ContainerDef): Res[ContainerId]
     def startContainer(container: ContainerId): Res[Unit]
     def killContainer(container: ContainerId): Eff[Unit]
@@ -31,10 +31,10 @@ object implicits {
       DockerAction.removeContainer[F](id).foldMap(cli)
     def pushImage(image: ImageName): F[Unit] =
       DockerAction.pushImage[F](image).foldMap(cli)
-    def buildImage(dockerFile: String, imageName: ImageName): F[Unit] =
-      DockerAction.buildImage[F](dockerFile, imageName).foldMap(cli)
+    def buildImage(dockerFile: String, imageName: ImageName, labels: List[Label]): F[Unit] =
+      DockerAction.buildImage[F](dockerFile, imageName, labels).foldMap(cli)
     def buildContainer(c: ContainerDef): F[ContainerId] =
-      DockerAction.buildContainer[F](c).foldMap(cli)
+      DockerAction.buildContainer(c).foldMap(cli)
     def startContainer(container: ContainerId): F[Unit] =
       DockerAction.startContainer[F](container).foldMap(cli)
     def killContainer(container: ContainerId): F[Unit] =
@@ -58,8 +58,8 @@ object implicits {
       DockerAction.removeContainer[Resource[F, *]](id).foldMap(cli).use(Applicative[F].pure)
     def pushImage(image: ImageName): F[Unit] =
       DockerAction.pushImage[Resource[F, *]](image).foldMap(cli).use(Applicative[F].pure)
-    def buildImage(dockerFile: String, imageName: ImageName): F[Unit] =
-      DockerAction.buildImage[Resource[F, *]](dockerFile, imageName).foldMap(cli).use(Applicative[F].pure)
+    def buildImage(dockerFile: String, imageName: ImageName, labels: List[Label]): F[Unit] =
+      DockerAction.buildImage[Resource[F, *]](dockerFile, imageName, labels).foldMap(cli).use(Applicative[F].pure)
     def buildContainer(c: ContainerDef): Resource[F, ContainerId] =
       DockerAction.buildContainer[Resource[F, *]](c).foldMap(cli)
     def startContainer(container: ContainerId): Resource[F, Unit] =
