@@ -51,7 +51,7 @@ object implicits {
       DockerAction.killContainerIfRunning[F](c).foldMap(cli)
   }
 
-  implicit class Docker4SResourceExt[F[_]: ConcurrentEffect, A](cli: FunctionK[DockerAction, Resource[F, *]]) extends ExtensionInterface[Resource[F, *], F] {
+  implicit class Docker4SResourceExt[F[_]: ConcurrentEffect, A](cli: Docker4SClient.ResourceDocker4SClient[F]) extends ExtensionInterface[Resource[F, *], F] {
     def pullImage(image: ImageName): F[Unit] =
       DockerAction.pullImage[Resource[F, *]](image).foldMap(cli).use(Applicative[F].pure)
     def removeContainer(id: ContainerId): F[Unit] =
